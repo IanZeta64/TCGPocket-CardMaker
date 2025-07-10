@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: "CardMaker"
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: card_db
+

@@ -1,0 +1,29 @@
+# Ignorar pastas do Git e do sistema
+.git
+.gitignore
+
+# Ignorar arquivos de build do Gradle
+build/
+out/
+.gradle/
+**/build/
+**/out/
+
+# Ignorar arquivos de IDE (IntelliJ, Eclipse, VSCode)
+*.iml
+.idea/
+.vscode/
+*.class
+
+# Ignorar logs, arquivos temporários, caches
+*.log
+*.tmp
+*.temp
+
+# Ignorar arquivos específicos do sistema (Windows, Mac)
+Thumbs.db
+.DS_Store
+
+# Ignorar arquivos de teste, se quiser (opcional)
+**/test/
+**/tests/
