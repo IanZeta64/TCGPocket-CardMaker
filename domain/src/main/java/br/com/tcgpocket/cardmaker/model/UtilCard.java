@@ -1,7 +1,9 @@
 package br.com.tcgpocket.cardmaker.model;
 
 import br.com.tcgpocket.cardmaker.enums.*;
+import org.springframework.data.annotation.TypeAlias;
 
+@TypeAlias("util")
 public class UtilCard extends Card{
     private final UtilCardTypeEnum utilType;
     private final String description;
@@ -21,5 +23,13 @@ public class UtilCard extends Card{
         super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status);
         this.utilType = utilType;
         this.description = description;
+    }
+
+    public UtilCardTypeEnum getUtilType() {
+        return utilType;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }
