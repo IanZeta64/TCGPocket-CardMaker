@@ -190,7 +190,7 @@ public class CardService {
         };
     }
 
-    public Mono<CardResponse> toResponse(PokeCard card) {
+    private Mono<CardResponse> toResponse(PokeCard card) {
         return Mono.just(
                 new CardResponse(
                         card.getId(),
@@ -220,7 +220,7 @@ public class CardService {
                 )
         );
     }
-    public Mono<CardResponse> toResponse(UtilCard card) {
+    private Mono<CardResponse> toResponse(UtilCard card) {
         return Mono.just(
                 new CardResponse(
                         card.getId(),

@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Component
 public class SearchCardUseCase {
-    private static final Logger log = LoggerFactory.getLogger(CreateCardUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(SearchCardUseCase.class);
     private final CardDataProvider cardDataProvider;
     private final CardService service;
 
