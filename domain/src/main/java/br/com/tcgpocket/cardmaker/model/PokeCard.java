@@ -1,7 +1,9 @@
 package br.com.tcgpocket.cardmaker.model;
 
 import br.com.tcgpocket.cardmaker.enums.*;
+import org.springframework.data.annotation.TypeAlias;
 
+@TypeAlias("poke")
 public class PokeCard extends Card {
     private String specie;
     private BattleCategoryEnum category;

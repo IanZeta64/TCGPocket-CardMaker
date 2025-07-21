@@ -50,6 +50,9 @@ plugins {
 	java
 }
 
+plugins.withId("org.jetbrains.kotlin.jvm") {
+}
+
 group = "br.com.tcgpocket"
 version = "0.0.1-SNAPSHOT"
 
@@ -58,6 +61,21 @@ java {
 		languageVersion.set(JavaLanguageVersion.of(21))
 	}
 }
+
+subprojects {
+	apply(plugin = "java")
+	apply(plugin = "org.springframework.boot")
+	apply(plugin = "io.spring.dependency-management")
+
+	dependencies {
+		implementation("org.springframework.boot:spring-boot-starter-webflux:3.4.7")
+		testImplementation("org.springframework.boot:spring-boot-starter-test")
+		testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+		testImplementation ("io.projectreactor:reactor-test")
+		implementation("org.slf4j:slf4j-api:2.0.17")
+	}
+}
+
 
 repositories {
 	mavenCentral()
