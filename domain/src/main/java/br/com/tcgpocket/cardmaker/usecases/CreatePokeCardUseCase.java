@@ -5,7 +5,7 @@ import br.com.tcgpocket.cardmaker.exceptions.CardCreationException;
 import br.com.tcgpocket.cardmaker.model.PokeCard;
 import br.com.tcgpocket.cardmaker.service.CardService;
 import br.com.tcgpocket.cardmaker.vo.CardResponse;
-import br.com.tcgpocket.cardmaker.vo.PokeCardVO;
+import br.com.tcgpocket.cardmaker.vo.PokeCardRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -13,18 +13,18 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 @Component
-public class CreateCardUseCase {
+public class CreatePokeCardUseCase {
 
-    private static final Logger log = LoggerFactory.getLogger(CreateCardUseCase.class);
+    private static final Logger log = LoggerFactory.getLogger(CreatePokeCardUseCase.class);
     private final CardDataProvider cardDataProvider;
     private final CardService service;
 
-    public CreateCardUseCase(CardDataProvider cardDataProvider, CardService service) {
+    public CreatePokeCardUseCase(CardDataProvider cardDataProvider, CardService service) {
         this.cardDataProvider = cardDataProvider;
         this.service = service;
     }
 
-    public Mono<CardResponse> create(PokeCardVO request, String user) {
+    public Mono<CardResponse> execute(String user, PokeCardRequest request) {
         return Mono.defer(() -> {
                             log.info("m=create, s=init, i=createPokeCard, cardName={}, creator={}", request.name(), user);
                     var model = Boolean.TRUE.equals(request.isOfficialPoke())
@@ -33,7 +33,7 @@ public class CreateCardUseCase {
                             : service.buildModel(user, request);
 
                             return model
-                                    .flatMap(cardDataProvider::createCard).ofType(PokeCard.class)
+                                    .flatMap(cardDataProvider::save).ofType(PokeCard.class)
                                     .switchIfEmpty(Mono.error(new CardCreationException("Not created PokeCard: " + request.name())))
                                     .flatMap(service::toResponse)
                                     .doOnNext(it ->

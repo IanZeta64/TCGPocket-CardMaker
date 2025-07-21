@@ -21,7 +21,7 @@ public class SearchCardUseCase {
         this.service = service;
     }
 
-    public Flux<CardResponse> search(String user, Map<String, String> filters) {
+    public Flux<CardResponse> execute(String user, Map<String, String> filters) {
         return Flux.defer(() -> {
                     log.info("m=search, s=init, i=searchCard, user={}, filters={}", user, filters);
                     var query = service.getQuery(filters);
