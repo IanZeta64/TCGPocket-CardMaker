@@ -18,4 +18,6 @@ public interface CardDataProvider {
     Flux<Card> search(Query query);
 
     Mono<Card> getById(String id);
+
+    Mono<Boolean> existsById(String id);
 }

@@ -4,6 +4,7 @@ import br.com.tcgpocket.cardmaker.dataprovider.CardDataProvider;
 import br.com.tcgpocket.cardmaker.exceptions.CardCreationException;
 import br.com.tcgpocket.cardmaker.model.PokeCard;
 import br.com.tcgpocket.cardmaker.service.CardService;
+import br.com.tcgpocket.cardmaker.utils.Mapper;
 import br.com.tcgpocket.cardmaker.vo.CardResponse;
 import br.com.tcgpocket.cardmaker.vo.PokeCardRequest;
 import org.slf4j.Logger;
@@ -30,17 +31,17 @@ public class CreatePokeCardUseCase {
                     var model = Boolean.TRUE.equals(request.isOfficialPoke())
                             ? service.getPokeInfo(user, request)
                             .flatMap(pokeInfo -> service.buildModelWithOfficialPoke(user, request, pokeInfo))
-                            : service.buildModel(user, request);
+                            : service.buildModel(user, request, null);
 
                             return model
                                     .flatMap(cardDataProvider::save).ofType(PokeCard.class)
                                     .switchIfEmpty(Mono.error(new CardCreationException("Not created PokeCard: " + request.name())))
-                                    .flatMap(service::toResponse)
-                                    .doOnNext(it ->
-                                            log.info("m=create, s=finished, i=createPokeCard, cardId={}, cardName={}, creator={}", it.id(), it.name(), user))
-                                    .doOnError( ex -> log.error("m=create, s=error, i=createPokeCard, ex={}, message={}, cardName={}, creator={}", ex.getClass(), ex.getMessage(), request.name(), user));
+                                    .map(Mapper::toResponse);
                         }
                 )
+                                    .doOnNext(it ->
+                                            log.info("m=create, s=finished, i=createPokeCard, cardId={}, cardName={}, creator={}", it.id(), it.name(), user))
+                                    .doOnError( ex -> log.error("m=create, s=error, i=createPokeCard, ex={}, message={}, cardName={}, creator={}", ex.getClass(), ex.getMessage(), request.name(), user))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 }

@@ -48,4 +48,9 @@ public class CardDataProviderImpl implements CardDataProvider {
     public Mono<Card> getById(String id) {
         return repository.findById(id);
     }
+
+    @Override
+    public Mono<Boolean> existsById(String id) {
+        return repository.existsById(id);
+    }
 }
