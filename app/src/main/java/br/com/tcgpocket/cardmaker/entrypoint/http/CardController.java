@@ -1,6 +1,7 @@
 package br.com.tcgpocket.cardmaker.entrypoint.http;
 
 import br.com.tcgpocket.cardmaker.vo.CardResponse;
+import br.com.tcgpocket.cardmaker.vo.ImageChangeRequest;
 import br.com.tcgpocket.cardmaker.vo.PokeCardRequest;
 import br.com.tcgpocket.cardmaker.vo.UtilCardRequest;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,8 @@ public interface CardController {
     @ResponseStatus(HttpStatus.OK)
     Flux<CardResponse> searchCard(@RequestHeader("X-user") String user,
                                   @RequestParam(required = false) Map<String, String> filters
-                                      );
+    );
+
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     Mono<CardResponse> getById(@RequestHeader("X-user") String user,
@@ -44,4 +46,17 @@ public interface CardController {
     Mono<CardResponse> updateUtilCard(@RequestHeader("X-user") String user,
                                       @PathVariable String id,
                                       @RequestBody UtilCardRequest card);
+
+    @PatchMapping("/change-image/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    Mono<CardResponse> changeImage(@RequestHeader("X-user") String user,
+                                   @PathVariable String id,
+                                   @RequestBody ImageChangeRequest request);
+
+    @PatchMapping("/promote/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    Mono<CardResponse> promote(@RequestHeader("X-user") String user,
+                               @PathVariable String id,
+                               @RequestParam boolean promotion);
 }
+

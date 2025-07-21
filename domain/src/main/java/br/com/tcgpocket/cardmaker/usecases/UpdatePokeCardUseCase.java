@@ -2,7 +2,7 @@ package br.com.tcgpocket.cardmaker.usecases;
 
 import br.com.tcgpocket.cardmaker.dataprovider.CardDataProvider;
 import br.com.tcgpocket.cardmaker.exceptions.CardNotFoundException;
-import br.com.tcgpocket.cardmaker.exceptions.UnprocessedCardException;
+import br.com.tcgpocket.cardmaker.exceptions.NotUpdateCardException;
 import br.com.tcgpocket.cardmaker.model.PokeCard;
 import br.com.tcgpocket.cardmaker.service.CardService;
 import br.com.tcgpocket.cardmaker.utils.Mapper;
@@ -35,7 +35,7 @@ public class UpdatePokeCardUseCase {
                                     : Mono.error(new CardNotFoundException("Not found PokeCard with id: " + id)));
 
                     return model.flatMap(cardDataProvider::save).ofType(PokeCard.class)
-                            .switchIfEmpty(Mono.error(new UnprocessedCardException("PokeCard not updated: " + id)))
+                            .switchIfEmpty(Mono.error(new NotUpdateCardException("PokeCard not updated: " + id)))
                             .map(Mapper::toResponse);
                 })
                 .doOnNext(it ->
