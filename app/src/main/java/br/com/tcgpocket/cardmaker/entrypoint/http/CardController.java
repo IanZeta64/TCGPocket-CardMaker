@@ -20,7 +20,7 @@ public interface CardController {
 
     @PostMapping("/create/util")
     @ResponseStatus(HttpStatus.CREATED)
-    Mono<CardResponse> createPokeCard(@RequestHeader("X-user") String user, @RequestBody UtilCardRequest card);
+    Mono<CardResponse> createUtilCard(@RequestHeader("X-user") String user, @RequestBody UtilCardRequest card);
 
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
@@ -32,4 +32,16 @@ public interface CardController {
     Mono<CardResponse> getById(@RequestHeader("X-user") String user,
                                @PathVariable(required = false) String id
     );
+
+    @PutMapping("/update/poke/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    Mono<CardResponse> updatePokeCard(@RequestHeader("X-user") String user,
+                                      @PathVariable String id,
+                                      @RequestBody PokeCardRequest card);
+
+    @PutMapping("/update/util/{id}")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    Mono<CardResponse> updateUtilCard(@RequestHeader("X-user") String user,
+                                      @PathVariable String id,
+                                      @RequestBody UtilCardRequest card);
 }

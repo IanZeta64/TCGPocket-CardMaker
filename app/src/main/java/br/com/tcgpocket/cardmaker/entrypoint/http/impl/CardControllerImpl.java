@@ -1,10 +1,7 @@
 package br.com.tcgpocket.cardmaker.entrypoint.http.impl;
 
 import br.com.tcgpocket.cardmaker.entrypoint.http.CardController;
-import br.com.tcgpocket.cardmaker.usecases.CreatePokeCardUseCase;
-import br.com.tcgpocket.cardmaker.usecases.CreateUtilCardUseCase;
-import br.com.tcgpocket.cardmaker.usecases.GetCardUseCase;
-import br.com.tcgpocket.cardmaker.usecases.SearchCardUseCase;
+import br.com.tcgpocket.cardmaker.usecases.*;
 import br.com.tcgpocket.cardmaker.vo.CardResponse;
 import br.com.tcgpocket.cardmaker.vo.PokeCardRequest;
 import br.com.tcgpocket.cardmaker.vo.UtilCardRequest;
@@ -24,27 +21,31 @@ public class CardControllerImpl implements CardController {
     private final CreateUtilCardUseCase createUtilCardUseCase;
     private final SearchCardUseCase searchCardUseCase;
     private final GetCardUseCase getCardUseCase;
+    private final UpdatePokeCardUseCase updatePokeCardUseCase;
+    private final UpdateUtilCardUseCase updateUtilCardUseCase;
 
-    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase) {
+    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase, UpdatePokeCardUseCase updatePokeCardUseCase, UpdateUtilCardUseCase updateUtilCardUseCase) {
         this.createPokeCardUseCase = createPokeCardUseCase;
         this.createUtilCardUseCase = createUtilCardUseCase;
         this.searchCardUseCase = searchCardUseCase;
         this.getCardUseCase = getCardUseCase;
+        this.updatePokeCardUseCase = updatePokeCardUseCase;
+        this.updateUtilCardUseCase = updateUtilCardUseCase;
     }
 
     @Override
     public Mono<CardResponse> createPokeCard(String user, PokeCardRequest card) {
         return createPokeCardUseCase.execute(user, card)
                 .subscribeOn(Schedulers.parallel())
-                .doOnError(err -> log.error("Error creating PokeCard - {} - user={}", err.getMessage(), user))
+                .doOnError(err -> log.error("Error creating PokeCard - e={}, user={}", err.getMessage(), user))
                 .doOnNext(it -> log.info("Create PokeCard successfully - {} - user={}", it.id(), user));
     }
 
     @Override
-    public Mono<CardResponse> createPokeCard(String user, UtilCardRequest card) {
+    public Mono<CardResponse> createUtilCard(String user, UtilCardRequest card) {
         return createUtilCardUseCase.execute(user, card)
                 .subscribeOn(Schedulers.parallel())
-                .doOnError(err -> log.error("Error creating UtilCard - {} - user={}", err.getMessage(), user))
+                .doOnError(err -> log.error("Error creating UtilCard - e={}, user={}", err.getMessage(), user))
                 .doOnNext(it -> log.info("Create UtilCard successfully - {} - user={}", it.id(), user));
     }
 
@@ -52,7 +53,7 @@ public class CardControllerImpl implements CardController {
     public Flux<CardResponse> searchCard(String user, Map<String, String> filters) {
         return searchCardUseCase.execute(user, filters)
                 .subscribeOn(Schedulers.parallel())
-                .doOnError(err -> log.error("Error searching Cards - {} - user={}", err.getMessage(), user))
+                .doOnError(err -> log.error("Error searching Cards - e={}, user={}", err.getMessage(), user))
                 .doOnNext(it -> log.info("Search Cards successfully - user={}", user));
     }
 
@@ -60,7 +61,23 @@ public class CardControllerImpl implements CardController {
     public Mono<CardResponse> getById(String user, String id) {
         return getCardUseCase.execute(user, id)
                 .subscribeOn(Schedulers.parallel())
-                .doOnError(err -> log.error("Error get Card by ID {} - {} - user={}", id, err.getMessage(), user))
+                .doOnError(err -> log.error("Error get Card by ID {} - e={}, user={}", id, err.getMessage(), user))
                 .doOnNext(it -> log.info("Search Cards successfully {} - user={}", id, user));
+    }
+
+    @Override
+    public Mono<CardResponse> updatePokeCard(String user, String id, PokeCardRequest card) {
+        return updatePokeCardUseCase.execute(user, id, card)
+                .subscribeOn(Schedulers.parallel())
+                .doOnError(err -> log.error("Error updating PokeCard {} - e={}, user={}", id, err.getMessage(), user))
+                .doOnNext(it -> log.info("Update PokeCard successfully - {} - user={}", it.id(), user));
+    }
+
+    @Override
+    public Mono<CardResponse> updateUtilCard(String user, String id, UtilCardRequest card) {
+        return updateUtilCardUseCase.execute(user, id, card)
+                .subscribeOn(Schedulers.parallel())
+                .doOnError(err -> log.error("Error updating UtilCard {} - e={}, user={}", id, err.getMessage(), user))
+                .doOnNext(it -> log.info("Update UtilCard successfully - {} - user={}", it.id(), user));
     }
 }
