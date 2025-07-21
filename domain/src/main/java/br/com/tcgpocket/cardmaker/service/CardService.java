@@ -1,33 +1,39 @@
 package br.com.tcgpocket.cardmaker.service;
 
-import br.com.tcgpocket.cardmaker.dataprovider.PokeCardDataProvider;
+import br.com.tcgpocket.cardmaker.dataprovider.CardDataProvider;
 import br.com.tcgpocket.cardmaker.enums.*;
-import br.com.tcgpocket.cardmaker.exceptions.CardCreationException;
 import br.com.tcgpocket.cardmaker.exceptions.PokeNotFoundException;
+import br.com.tcgpocket.cardmaker.model.Card;
 import br.com.tcgpocket.cardmaker.model.PokeCard;
+import br.com.tcgpocket.cardmaker.model.UtilCard;
 import br.com.tcgpocket.cardmaker.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+
+import java.util.Map;
+import java.util.regex.Pattern;
 
 @Service
 public class CardService {
 
     private static final Logger log = LoggerFactory.getLogger(CardService.class);
-    private final PokeCardDataProvider pokeCardDataProvider;
+    private final CardDataProvider cardDataProvider;
 
-    public CardService(PokeCardDataProvider pokeCardDataProvider) {
-        this.pokeCardDataProvider = pokeCardDataProvider;
+    public CardService(CardDataProvider cardDataProvider) {
+        this.cardDataProvider = cardDataProvider;
     }
 
-    public Mono<PokeInfoVO> getPokeInfo(String user, PokeCardVO card) {
+    public Mono<PokeInfoVO> getPokeInfo(String user, PokeCardRequest card) {
         return Mono.defer(() -> {
                             log.info("m=create, s=init, i=getPokeInfo, cardName={}, creator={}", card.name(), user);
-                            return pokeCardDataProvider.getPokeDetail(card.name())
+                            return cardDataProvider.getPokeDetail(card.name())
                                     .switchIfEmpty(Mono.error(new PokeNotFoundException("Details not found of poke: " + card.name())))
-                                    .zipWith(pokeCardDataProvider.getPokeSpecies(card.name()))
+                                    .zipWith(cardDataProvider.getPokeSpecies(card.name()))
                                     .switchIfEmpty(Mono.error(new PokeNotFoundException("Infos not found of poke: " + card.name())))
                                     .flatMap(tuple -> {
                                         var details = tuple.getT1();
@@ -35,7 +41,7 @@ public class CardService {
 
                                         var validateEvolutionAndNoFossilPoke = validateEvolutionAndNoFossilPoke(card, species);
                                         Mono<String> preEvolutionSprite = validateEvolutionAndNoFossilPoke
-                                                ? pokeCardDataProvider.getPokeDetail(species.evolveFrom().name()).map(PokeDetailVO::getSprite)
+                                                ? cardDataProvider.getPokeDetail(species.evolveFrom().name()).map(PokeDetailVO::getSprite)
                                                 .switchIfEmpty(Mono.error(new PokeNotFoundException("Details not found of poke: " + card.name())))
                                                 : Mono.empty();
 
@@ -74,7 +80,7 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<PokeCard> buildModelWithOfficialPoke(String user, PokeCardVO card, PokeInfoVO pokeInfo) {
+    public Mono<PokeCard> buildModelWithOfficialPoke(String user, PokeCardRequest card, PokeInfoVO pokeInfo) {
         boolean validateImage = card.image() != null;
         return Mono.just(new PokeCard(
                         card.category() != BattleCategoryEnum.EX ? card.name() : card.name() + "-EX",
@@ -83,7 +89,7 @@ public class CardService {
                         validateEffect(card),
                         user,
                         validateImage ? card.illustrator() : null,
-                        card.isPromo() ? RarityEnum.PROMO : validateRarity(card),
+                        Boolean.TRUE.equals(card.isPromo()) ? RarityEnum.PROMO : validateRarity(card),
                         card.booster(),
                         PromoteStatusEnum.PRIVATE,
                         card.name(),
@@ -104,7 +110,7 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<PokeCard> buildModel(String user, PokeCardVO card) {
+    public Mono<PokeCard> buildModel(String user, PokeCardRequest card) {
         return Mono.just(new PokeCard(
                         card.category() != BattleCategoryEnum.EX ? card.name() : card.name() + "-EX",
                         card.image(),
@@ -133,9 +139,36 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    private RarityEnum validateRarity(PokeCardVO card) {
+    public Mono<UtilCard> buildModel(String user,  UtilCardRequest card){
+        return Mono.just(
+                new UtilCard(
+                        card.name(),
+                        card.image(),
+                        card.background(),
+                        validateEffect(card),
+                        user,
+                        card.illustrator(),
+                        validateRarity(card),
+                        card.booster(),
+                        PromoteStatusEnum.PRIVATE,
+                        card.utilType(),
+                        card.description()
+                )
+        );
+    }
+
+    private RarityEnum validateRarity(UtilCardRequest card) {
+       return (card.isPromo())? RarityEnum.PROMO : switch(card.effect()){
+            case SPECIAL_ART -> RarityEnum.STAR_2;
+            case IMMERSIVE -> RarityEnum.STAR_3;
+            case GOLD -> RarityEnum.CROWN;
+            default -> RarityEnum.DIAMOND_2;
+        };
+    }
+
+    private RarityEnum validateRarity(PokeCardRequest card) {
         if (Boolean.TRUE.equals(card.isPromo())) return RarityEnum.PROMO;
-        RarityEnum rarity = null;
+        RarityEnum rarity;
         if (card.category() == BattleCategoryEnum.NO_EX) {
             rarity = switch (card.effect()) {
                 case COMMON ->
@@ -156,61 +189,104 @@ public class CardService {
                 default -> RarityEnum.DIAMOND_4;
             };
         }
-            return rarity;
+        return rarity;
     }
 
-    private EffectEnum validateEffect(PokeCardVO card) {
+    private EffectEnum validateEffect(UtilCardRequest card) {
+        return switch (card.effect()){
+            case COMMON, FOIL, EX -> EffectEnum.COMMON;
+            case FULL_ART, SPECIAL_ART, RAINBOW, SHINY -> EffectEnum.SPECIAL_ART;
+            case IMMERSIVE -> EffectEnum.IMMERSIVE;
+            case GOLD -> EffectEnum.GOLD;
+        };
+    }
+
+    private EffectEnum validateEffect(PokeCardRequest card) {
         var effect = card.effect();
-        if (card.category() == BattleCategoryEnum.EX) {
-            return switch (effect) {
-                case COMMON, FOIL -> EffectEnum.EX;
-                case FULL_ART -> EffectEnum.RAINBOW;
-                default -> effect;
-            };
+        if (card.category() == BattleCategoryEnum.NO_EX) {
+            if (effect == EffectEnum.RAINBOW || effect == EffectEnum.SPECIAL_ART) {
+                effect = EffectEnum.FULL_ART;
+            } else if (effect == EffectEnum.EX) {
+                effect = EffectEnum.FOIL;
+            }
+            return effect;
         }
-        if (effect == EffectEnum.RAINBOW || effect == EffectEnum.SPECIAL_ART) {
-            return EffectEnum.FULL_ART;
-        }
-        if (effect == EffectEnum.EX) {
-            return card.evolutionStage() == EvolutionStageEnum.BASIC ? EffectEnum.COMMON : EffectEnum.FOIL;
-        }
-        return effect;
+        return switch (effect) {
+            case COMMON, FOIL -> EffectEnum.EX;
+            case FULL_ART -> EffectEnum.RAINBOW;
+            default -> effect;
+        };
+    }
+    public Mono<CardResponse> toResponse(Card card) {
+        return switch (card) {
+            case PokeCard poke -> toResponse(poke);
+            case UtilCard util -> toResponse(util);
+            default -> Mono.error(new IllegalArgumentException("Tipo de Card desconhecido: " + card.getClass()));
+        };
     }
 
-        public Mono<PokeCardResponse> toResponse (PokeCard entity){
-            return Mono.just(new PokeCardResponse(
-                    entity.getId(),
-                    entity.getName(),
-                    entity.getImage(),
-                    entity.getBackground(),
-                    entity.getEffect(),
-                    entity.getCreatedBy(),
-                    entity.getIllustrator(),
-                    entity.getRarity(),
-                    entity.getBooster(),
-                    entity.getSpecie(),
-                    entity.getCategory(),
-                    entity.getType(),
-                    entity.getEvolutionStage(),
-                    entity.getDexNumber(),
-                    entity.getDexInfo(),
-                    entity.getPokeDescription(),
-                    entity.getPs(),
-                    entity.getAbility(),
-                    entity.getAttack(),
-                    entity.getWeakness(),
-                    entity.getRetreat(),
-                    entity.getEvolveFrom(),
-                    entity.getEvolveFromSprite(),
-                    entity.getStatus()
-
-            ));
-        }
-
-        private boolean validateEvolutionAndNoFossilPoke (PokeCardVO card, PokeSpeciesVO especie){
-            boolean validateNullable = especie.evolveFrom() != null;
-            validateNullable = validateNullable && especie.evolveFrom().name() != null;
-            boolean validateBasicPokemon = card.evolutionStage() != EvolutionStageEnum.BASIC;
-            return validateNullable && validateBasicPokemon && !card.isFossil();
-        }
+    private Mono<CardResponse> toResponse(PokeCard card) {
+        return Mono.just(
+                new CardResponse(
+                        card.getId(),
+                        card.getName(),
+                        card.getImage(),
+                        card.getBackground(),
+                        card.getEffect(),
+                        card.getCreatedBy(),
+                        card.getIllustrator(),
+                        card.getRarity(),
+                        card.getBooster(),
+                        card.getStatus(),
+                        card.getSpecie(),
+                        card.getCategory(),
+                        card.getType(),
+                        card.getEvolutionStage(),
+                        card.getDexNumber(),
+                        card.getDexInfo(),
+                        card.getPokeDescription(),
+                        card.getPs(),
+                        card.getAbility(),
+                        card.getAttack(),
+                        card.getWeakness(),
+                        card.getRetreat(),
+                        card.getEvolveFrom(),
+                        card.getEvolveFromSprite()
+                )
+        );
     }
+    private Mono<CardResponse> toResponse(UtilCard card) {
+        return Mono.just(
+                new CardResponse(
+                        card.getId(),
+                        card.getName(),
+                        card.getImage(),
+                        card.getBackground(),
+                        card.getEffect(),
+                        card.getCreatedBy(),
+                        card.getIllustrator(),
+                        card.getRarity(),
+                        card.getBooster(),
+                        card.getStatus(),
+                        card.getUtilType(),
+                        card.getDescription()
+                )
+        );
+    }
+
+    private boolean validateEvolutionAndNoFossilPoke(PokeCardRequest card, PokeSpeciesVO especie) {
+        boolean validateNullable = especie.evolveFrom() != null;
+        validateNullable = validateNullable && especie.evolveFrom().name() != null;
+        boolean validateBasicPokemon = card.evolutionStage() != EvolutionStageEnum.BASIC;
+        return validateNullable && validateBasicPokemon && !card.isFossil();
+    }
+
+    public Query getQuery(Map<String, String> filters) {
+        return (filters.isEmpty()) ? null : new Query(new Criteria().andOperator(
+                filters.entrySet().stream()
+                        .map(e -> Criteria.where(e.getKey())
+                                .regex(".*" + Pattern.quote(e.getValue()) + ".*", "i"))
+                        .toArray(Criteria[]::new)
+        ));
+    }
+}
