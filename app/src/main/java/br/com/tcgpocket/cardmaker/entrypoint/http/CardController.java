@@ -19,6 +19,6 @@ public interface CardController {
     @GetMapping("/search")
     @ResponseStatus(HttpStatus.OK)
     Flux<CardResponse> searchCard(@RequestHeader("X-user") String user,
-                                  @RequestParam Map<String, String> filters
+                                  @RequestParam(required = false) Map<String, String> filters
                                       );
 }

@@ -246,15 +246,8 @@ public class CardService {
         return validateNullable && validateBasicPokemon && !card.isFossil();
     }
 
-    public Flux<Card> search(String user, Map<String, String> filters) {
-        return Flux.defer(() -> {
-            log.info("m=search, s=init, i=search, user={}", user);
-            return cardDataProvider.search(getQuery(filters));
-        });
-    }
-
     public Query getQuery(Map<String, String> filters) {
-        return new Query(new Criteria().andOperator(
+        return (filters.isEmpty()) ? null : new Query(new Criteria().andOperator(
                 filters.entrySet().stream()
                         .map(e -> Criteria.where(e.getKey())
                                 .regex(".*" + Pattern.quote(e.getValue()) + ".*", "i"))
