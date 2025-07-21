@@ -1,6 +1,7 @@
 package br.com.tcgpocket.cardmaker.handlerAdvice;
 
 import br.com.tcgpocket.cardmaker.exceptions.CardCreationException;
+import br.com.tcgpocket.cardmaker.exceptions.CardNotFoundException;
 import br.com.tcgpocket.cardmaker.exceptions.PokeNotFoundException;
 import br.com.tcgpocket.cardmaker.handlerAdvice.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,11 @@ public class AdviceHandler {
 
     @ExceptionHandler(PokeNotFoundException.class)
     protected ResponseEntity<Object> handlePokeNotFoundException(PokeNotFoundException ex) {
+        return handlePokemonException(HttpStatus.NOT_FOUND, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(CardNotFoundException.class)
+    protected ResponseEntity<Object> handleCardNotFoundException(CardNotFoundException ex) {
         return handlePokemonException(HttpStatus.NOT_FOUND, List.of(ex.getMessage()));
     }
 

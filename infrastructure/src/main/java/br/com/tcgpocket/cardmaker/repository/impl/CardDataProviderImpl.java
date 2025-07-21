@@ -43,4 +43,9 @@ public class CardDataProviderImpl implements CardDataProvider {
     public Flux<Card> search(Query query) {
         return (query == null) ? repository.findAll() : mongoTemplate.find(query, Card.class);
     }
+
+    @Override
+    public Mono<Card> getById(String id) {
+        return repository.findById(id);
+    }
 }

@@ -3,6 +3,7 @@ package br.com.tcgpocket.cardmaker.entrypoint.http.impl;
 import br.com.tcgpocket.cardmaker.entrypoint.http.CardController;
 import br.com.tcgpocket.cardmaker.usecases.CreatePokeCardUseCase;
 import br.com.tcgpocket.cardmaker.usecases.CreateUtilCardUseCase;
+import br.com.tcgpocket.cardmaker.usecases.GetCardUseCase;
 import br.com.tcgpocket.cardmaker.usecases.SearchCardUseCase;
 import br.com.tcgpocket.cardmaker.vo.CardResponse;
 import br.com.tcgpocket.cardmaker.vo.PokeCardRequest;
@@ -22,11 +23,13 @@ public class CardControllerImpl implements CardController {
     private final CreatePokeCardUseCase createPokeCardUseCase;
     private final CreateUtilCardUseCase createUtilCardUseCase;
     private final SearchCardUseCase searchCardUseCase;
+    private final GetCardUseCase getCardUseCase;
 
-    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase) {
+    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase) {
         this.createPokeCardUseCase = createPokeCardUseCase;
         this.createUtilCardUseCase = createUtilCardUseCase;
         this.searchCardUseCase = searchCardUseCase;
+        this.getCardUseCase = getCardUseCase;
     }
 
     @Override
@@ -51,5 +54,13 @@ public class CardControllerImpl implements CardController {
                 .subscribeOn(Schedulers.parallel())
                 .doOnError(err -> log.error("Error searching Cards - {} - user={}", err.getMessage(), user))
                 .doOnNext(it -> log.info("Search Cards successfully - user={}", user));
+    }
+
+    @Override
+    public Mono<CardResponse> getById(String user, String id) {
+        return getCardUseCase.execute(user, id)
+                .subscribeOn(Schedulers.parallel())
+                .doOnError(err -> log.error("Error get Card by ID {} - {} - user={}", id, err.getMessage(), user))
+                .doOnNext(it -> log.info("Search Cards successfully {} - user={}", id, user));
     }
 }

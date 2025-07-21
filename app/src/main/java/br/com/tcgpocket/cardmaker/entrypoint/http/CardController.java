@@ -27,4 +27,9 @@ public interface CardController {
     Flux<CardResponse> searchCard(@RequestHeader("X-user") String user,
                                   @RequestParam(required = false) Map<String, String> filters
                                       );
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    Mono<CardResponse> getById(@RequestHeader("X-user") String user,
+                               @PathVariable(required = false) String id
+    );
 }
