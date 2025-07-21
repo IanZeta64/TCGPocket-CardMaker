@@ -2,32 +2,33 @@ package br.com.tcgpocket.cardmaker.vo;
 
 import br.com.tcgpocket.cardmaker.enums.*;
 import br.com.tcgpocket.cardmaker.model.Ability;
+import br.com.tcgpocket.cardmaker.model.PokeCard;
 
-public record PokeCardRequest(
+public record PokeCardResponse(
+        String id,
         String name,
-        Boolean isOfficialPoke,
         String image,
-        String illustrator,
-        Boolean isShiny,
         BackgroundEnum background,
         EffectEnum effect,
+        String createdBy,
+        String illustrator,
+        RarityEnum rarity,
         String booster,
+
         String specie,
         BattleCategoryEnum category,
         PokeTypeEnum type,
+        EvolutionStageEnum evolutionStage,
         Integer dexNumber,
         String dexInfo,
         String pokeDescription,
-        EvolutionStageEnum evolutionStage,
-        Boolean isFossil,
-        String evolveFrom,
-        String evolveFromSprite,
         Integer ps,
         Ability ability,
         Ability attack,
         PokeTypeEnum weakness,
         Integer retreat,
-        PromoteStatusEnum status,
-        Boolean isPromo
-) {
+        String evolveFrom,
+        String evolveFromSprite,
+        PromoteStatusEnum status
+        ) {
 }
