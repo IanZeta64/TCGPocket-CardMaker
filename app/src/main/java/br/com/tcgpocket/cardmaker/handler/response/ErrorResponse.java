@@ -1,4 +1,4 @@
-package br.com.tcgpocket.cardmaker.handlerAdvice.response;
+package br.com.tcgpocket.cardmaker.handler.response;
 
 import java.time.Instant;
 import java.util.List;
