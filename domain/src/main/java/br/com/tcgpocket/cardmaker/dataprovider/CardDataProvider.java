@@ -16,4 +16,6 @@ public interface CardDataProvider {
     Mono<PokeSpeciesVO> getPokeSpecies(String name);
 
     Flux<Card> search(Query query);
+
+    Mono<Card> getById(String id);
 }
