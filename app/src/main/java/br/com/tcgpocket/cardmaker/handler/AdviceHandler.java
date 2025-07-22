@@ -1,9 +1,10 @@
-package br.com.tcgpocket.cardmaker.handlerAdvice;
+package br.com.tcgpocket.cardmaker.handler;
 
 import br.com.tcgpocket.cardmaker.exceptions.CardCreationException;
 import br.com.tcgpocket.cardmaker.exceptions.CardNotFoundException;
 import br.com.tcgpocket.cardmaker.exceptions.PokeNotFoundException;
-import br.com.tcgpocket.cardmaker.handlerAdvice.response.ErrorResponse;
+import br.com.tcgpocket.cardmaker.exceptions.NotUpdateCardException;
+import br.com.tcgpocket.cardmaker.handler.response.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,6 +32,11 @@ public class AdviceHandler {
 
     @ExceptionHandler(CardCreationException.class)
     protected ResponseEntity<Object> handleCardCreationException(CardCreationException ex) {
+        return handlePokemonException(HttpStatus.UNPROCESSABLE_ENTITY, List.of(ex.getMessage()));
+    }
+
+    @ExceptionHandler(NotUpdateCardException.class)
+    protected ResponseEntity<Object> handleUnprocessedCardException(NotUpdateCardException ex) {
         return handlePokemonException(HttpStatus.UNPROCESSABLE_ENTITY, List.of(ex.getMessage()));
     }
 }

@@ -3,6 +3,7 @@ package br.com.tcgpocket.cardmaker.entrypoint.http.impl;
 import br.com.tcgpocket.cardmaker.entrypoint.http.CardController;
 import br.com.tcgpocket.cardmaker.usecases.*;
 import br.com.tcgpocket.cardmaker.vo.CardResponse;
+import br.com.tcgpocket.cardmaker.vo.ImageChangeRequest;
 import br.com.tcgpocket.cardmaker.vo.PokeCardRequest;
 import br.com.tcgpocket.cardmaker.vo.UtilCardRequest;
 import org.slf4j.Logger;
@@ -23,14 +24,18 @@ public class CardControllerImpl implements CardController {
     private final GetCardUseCase getCardUseCase;
     private final UpdatePokeCardUseCase updatePokeCardUseCase;
     private final UpdateUtilCardUseCase updateUtilCardUseCase;
+    private final ChangeImageCardUseCase changeImageCardUseCase;
+    private final PromoteCardUseCase promoteCardUseCase;
 
-    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase, UpdatePokeCardUseCase updatePokeCardUseCase, UpdateUtilCardUseCase updateUtilCardUseCase) {
+    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase, UpdatePokeCardUseCase updatePokeCardUseCase, UpdateUtilCardUseCase updateUtilCardUseCase, ChangeImageCardUseCase changeImageCardUseCase, PromoteCardUseCase promoteCardUseCase) {
         this.createPokeCardUseCase = createPokeCardUseCase;
         this.createUtilCardUseCase = createUtilCardUseCase;
         this.searchCardUseCase = searchCardUseCase;
         this.getCardUseCase = getCardUseCase;
         this.updatePokeCardUseCase = updatePokeCardUseCase;
         this.updateUtilCardUseCase = updateUtilCardUseCase;
+        this.changeImageCardUseCase = changeImageCardUseCase;
+        this.promoteCardUseCase = promoteCardUseCase;
     }
 
     @Override
@@ -79,5 +84,22 @@ public class CardControllerImpl implements CardController {
                 .subscribeOn(Schedulers.parallel())
                 .doOnError(err -> log.error("Error updating UtilCard {} - e={}, user={}", id, err.getMessage(), user))
                 .doOnNext(it -> log.info("Update UtilCard successfully - {} - user={}", it.id(), user));
+    }
+
+    @Override
+    public Mono<CardResponse> changeImage(String user, String id, ImageChangeRequest request) {
+        return changeImageCardUseCase.execute(user, id, request)
+                .subscribeOn(Schedulers.parallel())
+                .doOnError(err -> log.error("Error changing Card image {} - e={}, user={}", id, err.getMessage(), user))
+                .doOnNext(it -> log.info("Change Card image successfully - {} - user={}", it.id(), user));
+    }
+
+
+    @Override
+    public Mono<CardResponse> promote(String user, String id, boolean promotion) {
+        return promoteCardUseCase.execute(user, id, promotion)
+                .subscribeOn(Schedulers.parallel())
+                .doOnError(err -> log.error("Error promoting Card {} - e={}, user={}", id, err.getMessage(), user))
+                .doOnNext(it -> log.info("Promote Card successfully - {} - user={}", it.id(), user));
     }
 }

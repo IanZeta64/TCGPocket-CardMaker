@@ -3,6 +3,8 @@ package br.com.tcgpocket.cardmaker.service;
 import br.com.tcgpocket.cardmaker.dataprovider.CardDataProvider;
 import br.com.tcgpocket.cardmaker.enums.*;
 import br.com.tcgpocket.cardmaker.exceptions.PokeNotFoundException;
+import br.com.tcgpocket.cardmaker.exceptions.NotUpdateCardException;
+import br.com.tcgpocket.cardmaker.model.Card;
 import br.com.tcgpocket.cardmaker.model.PokeCard;
 import br.com.tcgpocket.cardmaker.model.UtilCard;
 import br.com.tcgpocket.cardmaker.vo.*;
@@ -139,7 +141,21 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<UtilCard> buildModel(String user,  UtilCardRequest card, String id){
+    public Card changeImage(Card card, ImageChangeRequest newImage) {
+        if (card.getStatus() != PromoteStatusEnum.PRIVATE) throw new NotUpdateCardException("Cannot change image of a promoted: " + card.getId());
+        if (newImage.image() != null) card.setImage(newImage.image());
+        if (newImage.background() != null) card.setBackground(newImage.background());
+        return card;
+    }
+
+    public Card promote(Card card, boolean promotion) {
+        var status = card.getStatus();
+        if (status.isFinal()) throw new NotUpdateCardException("Card is in final status: " + card.getId());
+        card.setStatus(status.promote(promotion));
+        return card;
+    }
+
+    public Mono<UtilCard> buildModel(String user, UtilCardRequest card, String id) {
         return Mono.just(
                 new UtilCard(
                         id,
@@ -159,7 +175,7 @@ public class CardService {
     }
 
     private RarityEnum validateRarity(UtilCardRequest card) {
-       return Boolean.TRUE.equals((card.isPromo()))? RarityEnum.PROMO : switch(card.effect()){
+        return Boolean.TRUE.equals((card.isPromo())) ? RarityEnum.PROMO : switch (card.effect()) {
             case SPECIAL_ART -> RarityEnum.STAR_2;
             case IMMERSIVE -> RarityEnum.STAR_3;
             case GOLD -> RarityEnum.CROWN;
@@ -194,7 +210,7 @@ public class CardService {
     }
 
     private EffectEnum validateEffect(UtilCardRequest card) {
-        return switch (card.effect()){
+        return switch (card.effect()) {
             case COMMON, FOIL, EX -> EffectEnum.COMMON;
             case FULL_ART, SPECIAL_ART, RAINBOW, SHINY -> EffectEnum.SPECIAL_ART;
             case IMMERSIVE -> EffectEnum.IMMERSIVE;

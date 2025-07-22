@@ -100,4 +100,14 @@ public abstract class Card {
     public String getIllustrator() {
         return illustrator;
     }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+    public void setBackground(BackgroundEnum background) {
+        this.background = background;
+    }
+    public void setStatus(PromoteStatusEnum status) {
+        this.status = status;
+    }
 }

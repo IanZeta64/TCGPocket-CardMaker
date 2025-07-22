@@ -14,7 +14,7 @@ public class PokeAPIClient {
 
     public PokeAPIClient(WebClient.Builder builder
     ) {
-        this.client = builder.baseUrl(POKE_API_EXTERNAL_URL).build();
+        this.client = builder.baseUrl(POKE_API_EXTERNAL_URL).codecs(c -> c.defaultCodecs().maxInMemorySize(1024 * 1024)).build();
     }
 
     public Mono<PokeDetailVO> getInfoByName(String name){
