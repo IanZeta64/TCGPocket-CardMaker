@@ -53,4 +53,9 @@ public class CardDataProviderImpl implements CardDataProvider {
     public Mono<Boolean> existsById(String id) {
         return repository.existsById(id);
     }
+
+    @Override
+    public Mono<Void> delete(String id) {
+        return repository.deleteById(id);
+    }
 }

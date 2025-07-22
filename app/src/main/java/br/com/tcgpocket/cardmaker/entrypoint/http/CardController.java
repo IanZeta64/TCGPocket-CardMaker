@@ -58,5 +58,10 @@ public interface CardController {
     Mono<CardResponse> promote(@RequestHeader("X-user") String user,
                                @PathVariable String id,
                                @RequestParam boolean promotion);
+
+@DeleteMapping("/{id}")
+@ResponseStatus(HttpStatus.NO_CONTENT)
+Mono<Void> delete(@RequestHeader("X-user") String user,
+                           @PathVariable String id);
 }
 
