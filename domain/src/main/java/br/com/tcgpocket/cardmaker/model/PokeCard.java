@@ -2,6 +2,7 @@ package br.com.tcgpocket.cardmaker.model;
 
 import br.com.tcgpocket.cardmaker.enums.*;
 import org.springframework.data.annotation.TypeAlias;
+import java.time.LocalDateTime;
 
 @TypeAlias("poke")
 public class PokeCard extends Card {
@@ -41,8 +42,8 @@ public class PokeCard extends Card {
         this.evolveFromSprite = evolveFromSprite;
     }
 
-    public PokeCard(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, String specie, BattleCategoryEnum category, PokeTypeEnum type, EvolutionStageEnum evolutionStage, Integer dexNumber, String dexInfo, String pokeDescription, Integer ps, Ability ability, Ability attack, PokeTypeEnum weakness, Integer retreat, String evolveFrom, String evolveFromSprite) {
-        super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status);
+    public PokeCard(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt, String specie, BattleCategoryEnum category, PokeTypeEnum type, EvolutionStageEnum evolutionStage, Integer dexNumber, String dexInfo, String pokeDescription, Integer ps, Ability ability, Ability attack, PokeTypeEnum weakness, Integer retreat, String evolveFrom, String evolveFromSprite) {
+        super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status, createdAt);
         this.specie = specie;
         this.category = category;
         this.type = type;

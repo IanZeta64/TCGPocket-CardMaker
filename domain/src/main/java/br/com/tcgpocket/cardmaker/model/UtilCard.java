@@ -2,6 +2,7 @@ package br.com.tcgpocket.cardmaker.model;
 
 import br.com.tcgpocket.cardmaker.enums.*;
 import org.springframework.data.annotation.TypeAlias;
+import java.time.LocalDateTime;
 
 @TypeAlias("util")
 public class UtilCard extends Card{
@@ -17,8 +18,8 @@ public class UtilCard extends Card{
         this.description = description;
     }
 
-    public UtilCard(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, UtilCardTypeEnum utilType, String description) {
-        super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status);
+    public UtilCard(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt, UtilCardTypeEnum utilType, String description) {
+        super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status, createdAt);
         this.utilType = utilType;
         this.description = description;
     }

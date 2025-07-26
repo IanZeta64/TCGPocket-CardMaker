@@ -111,32 +111,99 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<PokeCard> buildModel(String user, PokeCardRequest card, String id) {
+    public Mono<PokeCard> buildModel(String user, PokeCardRequest request) {
         return Mono.just(new PokeCard(
-                        id,
-                        card.category() != BattleCategoryEnum.EX ? card.name() : card.name() + "-EX",
-                        card.image(),
-                        card.background(),
-                        validateEffect(card),
+                        request.category() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
+                        request.image(),
+                        request.background(),
+                        validateEffect(request),
                         user,
-                        card.illustrator(),
-                        Boolean.TRUE.equals(card.isPromo()) ? RarityEnum.PROMO : validateRarity(card),
-                        card.booster(),
+                        request.illustrator(),
+                        Boolean.TRUE.equals(request.isPromo()) ? RarityEnum.PROMO : validateRarity(request),
+                        request.booster(),
                         PromoteStatusEnum.PRIVATE,
-                        card.name(),
-                        card.category(),
-                        card.type(),
-                        card.evolutionStage(),
-                        card.dexNumber(),
-                        String.format("Nº %s %s.", card.dexNumber(), card.dexInfo()),
-                        card.pokeDescription(),
-                        card.ps(),
-                        card.ability(),
-                        card.attack(),
-                        card.weakness(),
-                        card.retreat(),
-                        card.evolveFrom(),
-                        card.evolveFromSprite()
+                        request.name(),
+                        request.category(),
+                        request.type(),
+                        request.evolutionStage(),
+                        request.dexNumber(),
+                        String.format("Nº %s %s.", request.dexNumber(), request.dexInfo()),
+                        request.pokeDescription(),
+                        request.ps(),
+                        request.ability(),
+                        request.attack(),
+                        request.weakness(),
+                        request.retreat(),
+                        request.evolveFrom(),
+                        request.evolveFromSprite()
+                ))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Mono<UtilCard> buildModel(String user, UtilCardRequest request) {
+        return Mono.just(
+                new UtilCard(
+                        request.name(),
+                        request.image(),
+                        request.background(),
+                        validateEffect(request),
+                        user,
+                        request.illustrator(),
+                        validateRarity(request),
+                        request.booster(),
+                        PromoteStatusEnum.PRIVATE,
+                        request.utilType(),
+                        request.description()
+                )
+        );
+    }
+
+    public Mono<PokeCard> updateModel(String user, PokeCardRequest request, PokeCard model) {
+        return Mono.just(new PokeCard(
+                       model.getId(),
+                        request.category() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
+                        request.image(),
+                        request.background(),
+                        validateEffect(request),
+                        user,
+                        request.illustrator(),
+                        Boolean.TRUE.equals(request.isPromo()) ? RarityEnum.PROMO : validateRarity(request),
+                        request.booster(),
+                        model.getStatus(),
+                        model.getCreatedAt(),
+                        request.name(),
+                        request.category(),
+                        request.type(),
+                        request.evolutionStage(),
+                        request.dexNumber(),
+                        String.format("Nº %s %s.", request.dexNumber(), request.dexInfo()),
+                        request.pokeDescription(),
+                        request.ps(),
+                        request.ability(),
+                        request.attack(),
+                        request.weakness(),
+                        request.retreat(),
+                        request.evolveFrom(),
+                        request.evolveFromSprite()
+                ))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Mono<UtilCard> updateModel(String user, UtilCardRequest request, UtilCard model) {
+        return Mono.just(new UtilCard(
+                        model.getId(),
+                        request.name(),
+                        request.image(),
+                        request.background(),
+                        validateEffect(request),
+                        user,
+                        request.illustrator(),
+                        Boolean.TRUE.equals(request.isPromo()) ? RarityEnum.PROMO : validateRarity(request),
+                        request.booster(),
+                        model.getStatus(),
+                        model.getCreatedAt(),
+                        request.utilType(),
+                        request.description()
                 ))
                 .subscribeOn(Schedulers.boundedElastic());
     }
@@ -155,41 +222,22 @@ public class CardService {
         return card;
     }
 
-    public Mono<UtilCard> buildModel(String user, UtilCardRequest card, String id) {
-        return Mono.just(
-                new UtilCard(
-                        id,
-                        card.name(),
-                        card.image(),
-                        card.background(),
-                        validateEffect(card),
-                        user,
-                        card.illustrator(),
-                        validateRarity(card),
-                        card.booster(),
-                        PromoteStatusEnum.PRIVATE,
-                        card.utilType(),
-                        card.description()
-                )
-        );
-    }
-
-    private RarityEnum validateRarity(UtilCardRequest card) {
-        return Boolean.TRUE.equals((card.isPromo())) ? RarityEnum.PROMO : switch (card.effect()) {
-            case SPECIAL_ART -> RarityEnum.STAR_2;
+    private RarityEnum validateRarity(UtilCardRequest request) {
+        return Boolean.TRUE.equals((request.isPromo())) ? RarityEnum.PROMO : switch (request.effect()) {
+            case SPECIAL_ART, FULL_ART, RAINBOW -> RarityEnum.STAR_2;
             case IMMERSIVE -> RarityEnum.STAR_3;
             case GOLD -> RarityEnum.CROWN;
             default -> RarityEnum.DIAMOND_2;
         };
     }
 
-    private RarityEnum validateRarity(PokeCardRequest card) {
-        if (Boolean.TRUE.equals(card.isPromo())) return RarityEnum.PROMO;
+    private RarityEnum validateRarity(PokeCardRequest request) {
+        if (Boolean.TRUE.equals(request.isPromo())) return RarityEnum.PROMO;
         RarityEnum rarity;
-        if (card.category() == BattleCategoryEnum.NO_EX) {
-            rarity = switch (card.effect()) {
+        if (request.category() == BattleCategoryEnum.NO_EX) {
+            rarity = switch (request.effect()) {
                 case COMMON ->
-                        card.evolutionStage() == EvolutionStageEnum.BASIC ? RarityEnum.DIAMOND : RarityEnum.DIAMOND_2;
+                        request.evolutionStage() == EvolutionStageEnum.BASIC ? RarityEnum.DIAMOND : RarityEnum.DIAMOND_2;
                 case FOIL -> RarityEnum.DIAMOND_3;
                 case IMMERSIVE -> RarityEnum.STAR_3;
                 case SHINY -> RarityEnum.SHINY;
@@ -198,7 +246,7 @@ public class CardService {
                 default -> RarityEnum.DIAMOND;
             };
         } else {
-            rarity = switch (card.effect()) {
+            rarity = switch (request.effect()) {
                 case RAINBOW, SPECIAL_ART -> RarityEnum.STAR_2;
                 case IMMERSIVE -> RarityEnum.STAR_3;
                 case SHINY -> RarityEnum.SHINY_2;

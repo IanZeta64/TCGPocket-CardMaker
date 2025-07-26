@@ -28,7 +28,7 @@ public class CreateUtilCardUseCase {
     public Mono<CardResponse> execute(String user, UtilCardRequest request) {
         return Mono.defer(() -> {
                     log.info("m=create, s=init, i=createUtilCard, cardName={}, creator={}", request.name(), user);
-                    return service.buildModel(user, request, null)
+                    return service.buildModel(user, request)
                             .flatMap(cardDataProvider::save).ofType(UtilCard.class)
                             .switchIfEmpty(Mono.error(new CardCreationException("Not created UtilCard: " + request.name())))
                             .map(Mapper::toResponse);
