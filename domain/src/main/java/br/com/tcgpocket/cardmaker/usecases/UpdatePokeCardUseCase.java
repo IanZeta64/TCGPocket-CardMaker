@@ -29,10 +29,9 @@ public class UpdatePokeCardUseCase {
     public Mono<CardResponse> execute(String user, String id, PokeCardRequest request) {
         return Mono.defer(() -> {
                     log.info("m=update, s=init, i=updatePokeCard, user={}, id={}, cardName={}", user, id, request.name());
-                    var model = cardDataProvider.existsById(id)
-                            .flatMap(exists -> Boolean.TRUE.equals((exists))
-                                    ? service.buildModel(user, request, id)
-                                    : Mono.error(new CardNotFoundException("Not found PokeCard with id: " + id)));
+                    var model = cardDataProvider.getById(id).ofType(PokeCard.class)
+                            .switchIfEmpty(Mono.error(new CardNotFoundException("Not found PokeCard with id: " + id)))
+                            .flatMap(card -> service.updateModel(user, request, card));
 
                     return model.flatMap(cardDataProvider::save).ofType(PokeCard.class)
                             .switchIfEmpty(Mono.error(new NotUpdateCardException("PokeCard not updated: " + id)))

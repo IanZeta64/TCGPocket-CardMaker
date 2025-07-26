@@ -31,7 +31,7 @@ public class CreatePokeCardUseCase {
                     var model = Boolean.TRUE.equals(request.isOfficialPoke())
                             ? service.getPokeInfo(user, request)
                             .flatMap(pokeInfo -> service.buildModelWithOfficialPoke(user, request, pokeInfo))
-                            : service.buildModel(user, request, null);
+                            : service.buildModel(user, request);
 
                             return model
                                     .flatMap(cardDataProvider::save).ofType(PokeCard.class)

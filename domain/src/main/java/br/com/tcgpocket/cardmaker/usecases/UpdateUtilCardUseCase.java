@@ -29,10 +29,9 @@ public class UpdateUtilCardUseCase {
     public Mono<CardResponse> execute(String user, String id, UtilCardRequest request) {
         return Mono.defer(() -> {
                     log.info("m=update, s=init, i=updateUtilCard, user={}, id={}, cardName={}", user, id, request.name());
-                    var model = cardDataProvider.existsById(id)
-                            .flatMap(exists -> Boolean.TRUE.equals((exists))
-                                    ? service.buildModel(user, request, id)
-                                    : Mono.error(new CardNotFoundException("Not found UtilCard with id: " + id)));
+                    var model = cardDataProvider.getById(id).ofType(UtilCard.class)
+                            .switchIfEmpty(Mono.error(new CardNotFoundException("Not found UtilCard with id: " + id)))
+                            .flatMap(card -> service.updateModel(user, request, card));
 
                     return model.flatMap(cardDataProvider::save).ofType(UtilCard.class)
                             .switchIfEmpty(Mono.error(new NotUpdateCardException("UtilCard not updated: " + id)))

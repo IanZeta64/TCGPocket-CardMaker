@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import java.time.LocalDateTime;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
@@ -32,6 +33,8 @@ public abstract class Card {
     protected RarityEnum rarity;
     protected String booster;
     protected PromoteStatusEnum status;
+    protected LocalDateTime createdAt;
+    protected LocalDateTime updatedAt;
 
     protected Card() {
     }
@@ -46,9 +49,10 @@ public abstract class Card {
         this.rarity = rarity;
         this.booster = booster;
         this.status = status;
+        this.createdAt = LocalDateTime.now();
     }
 
-    protected Card(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator,RarityEnum rarity, String booster, PromoteStatusEnum status) {
+    protected Card(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator,RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.image = image;
@@ -59,6 +63,8 @@ public abstract class Card {
         this.rarity = rarity;
         this.booster = booster;
         this.status = status;
+        this.createdAt = createdAt;
+        this. updatedAt = LocalDateTime.now();
     }
 
     public String getId() {
@@ -109,5 +115,13 @@ public abstract class Card {
     }
     public void setStatus(PromoteStatusEnum status) {
         this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 }
