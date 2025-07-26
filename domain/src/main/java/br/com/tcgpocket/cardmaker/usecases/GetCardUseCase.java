@@ -31,7 +31,7 @@ public class GetCardUseCase {
 
                 })
                 .doOnNext(it ->
-                        log.info("m=get, s=finished, i=getById, user={}, cardId={}, cardName={}", it.id(), it.name(), user))
+                        log.info("m=get, s=finished, i=getById, user={}, id={}, cardName={}", it.id(), it.name(), user))
                 .doOnError(ex -> log.error("m=get, s=error, i=getById, user={} ex={}, message={}", user, ex.getClass(), ex.getMessage()))
                 .subscribeOn(Schedulers.boundedElastic());
     }

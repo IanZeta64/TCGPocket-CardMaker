@@ -20,4 +20,6 @@ public interface CardDataProvider {
     Mono<Card> getById(String id);
 
     Mono<Boolean> existsById(String id);
+
+    Mono<Void> delete(String id);
 }

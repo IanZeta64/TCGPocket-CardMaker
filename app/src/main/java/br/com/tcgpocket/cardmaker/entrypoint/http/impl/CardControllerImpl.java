@@ -27,7 +27,9 @@ public class CardControllerImpl implements CardController {
     private final ChangeImageCardUseCase changeImageCardUseCase;
     private final PromoteCardUseCase promoteCardUseCase;
 
-    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase, UpdatePokeCardUseCase updatePokeCardUseCase, UpdateUtilCardUseCase updateUtilCardUseCase, ChangeImageCardUseCase changeImageCardUseCase, PromoteCardUseCase promoteCardUseCase) {
+    private final DeleteCardUseCase deleteCardUseCase;
+
+    public CardControllerImpl(CreatePokeCardUseCase createPokeCardUseCase, CreateUtilCardUseCase createUtilCardUseCase, SearchCardUseCase searchCardUseCase, GetCardUseCase getCardUseCase, UpdatePokeCardUseCase updatePokeCardUseCase, UpdateUtilCardUseCase updateUtilCardUseCase, ChangeImageCardUseCase changeImageCardUseCase, PromoteCardUseCase promoteCardUseCase, DeleteCardUseCase deleteCardUseCase) {
         this.createPokeCardUseCase = createPokeCardUseCase;
         this.createUtilCardUseCase = createUtilCardUseCase;
         this.searchCardUseCase = searchCardUseCase;
@@ -36,6 +38,7 @@ public class CardControllerImpl implements CardController {
         this.updateUtilCardUseCase = updateUtilCardUseCase;
         this.changeImageCardUseCase = changeImageCardUseCase;
         this.promoteCardUseCase = promoteCardUseCase;
+        this.deleteCardUseCase = deleteCardUseCase;
     }
 
     @Override
@@ -101,5 +104,13 @@ public class CardControllerImpl implements CardController {
                 .subscribeOn(Schedulers.parallel())
                 .doOnError(err -> log.error("Error promoting Card {} - e={}, user={}", id, err.getMessage(), user))
                 .doOnNext(it -> log.info("Promote Card successfully - {} - user={}", it.id(), user));
+    }
+
+    @Override
+    public Mono<Void> delete(String user, String id) {
+        return deleteCardUseCase.execute(user, id)
+                .subscribeOn(Schedulers.parallel())
+                .doOnError(err -> log.error("Error deleting Card by id {} - e={}, user={}", id, err.getMessage(), user))
+                .doOnNext(it -> log.info("Delete Card successfully {} - user={}", id, user));
     }
 }
