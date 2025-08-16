@@ -12,14 +12,14 @@ public class UtilCard extends Card{
     public UtilCard() {
     }
 
-    public UtilCard(String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, UtilCardTypeEnum utilType, String description) {
-        super(name, image, background, effect, createdBy, illustrator, rarity, booster, status);
+    public UtilCard(String name, String image, String imageLine, String backgroundImage, BackgroundEffectEnum backgroundEffect, String ex3dEffect, CategoryEffectEnum categoryEffect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, UtilCardTypeEnum utilType, String description) {
+        super(name, image, imageLine, backgroundImage, backgroundEffect, ex3dEffect, categoryEffect, createdBy, illustrator, rarity, booster, status);
         this.utilType = utilType;
         this.description = description;
     }
 
-    public UtilCard(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt, UtilCardTypeEnum utilType, String description) {
-        super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status, createdAt);
+    public UtilCard(String id, String name,String image, String imageLine, String backgroundImage, BackgroundEffectEnum backgroundEffect, String ex3dEffect, CategoryEffectEnum categoryEffect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt, UtilCardTypeEnum utilType, String description) {
+        super(id, name, image, imageLine, backgroundImage, backgroundEffect, ex3dEffect, categoryEffect, createdBy, illustrator, rarity, booster, status, createdAt);
         this.utilType = utilType;
         this.description = description;
     }

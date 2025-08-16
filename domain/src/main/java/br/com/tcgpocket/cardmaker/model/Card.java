@@ -1,7 +1,7 @@
 package br.com.tcgpocket.cardmaker.model;
 
-import br.com.tcgpocket.cardmaker.enums.BackgroundEnum;
-import br.com.tcgpocket.cardmaker.enums.EffectEnum;
+import br.com.tcgpocket.cardmaker.enums.BackgroundEffectEnum;
+import br.com.tcgpocket.cardmaker.enums.CategoryEffectEnum;
 import br.com.tcgpocket.cardmaker.enums.PromoteStatusEnum;
 import br.com.tcgpocket.cardmaker.enums.RarityEnum;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -25,9 +25,7 @@ public abstract class Card {
     @Id
     protected String id;
     protected String name;
-    protected String image;
-    protected BackgroundEnum background;
-    protected EffectEnum effect;
+    protected Visual visual;
     protected String createdBy;
     protected String illustrator;
     protected RarityEnum rarity;
@@ -39,11 +37,9 @@ public abstract class Card {
     protected Card() {
     }
 
-    protected Card(String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status) {
+    protected Card(String name, String image, String imageLine, String backgroundImage, BackgroundEffectEnum backgroundEffectEnum, String ex3dEffect, CategoryEffectEnum categoryEffect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status) {
         this.name = name;
-        this.image = image;
-        this.background = background;
-        this.effect = effect;
+        this.visual = new Visual(image, imageLine, backgroundImage, backgroundEffectEnum, ex3dEffect, categoryEffect);
         this.createdBy = createdBy;
         this.illustrator = illustrator;
         this.rarity = rarity;
@@ -52,12 +48,10 @@ public abstract class Card {
         this.createdAt = LocalDateTime.now();
     }
 
-    protected Card(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator,RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt) {
+    protected Card(String id, String name, String image, String imageLine, String backgroundImage, BackgroundEffectEnum backgroundEffectEnum, String ex3dEffect, CategoryEffectEnum categoryEffect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt) {
         this.id = id;
         this.name = name;
-        this.image = image;
-        this.background = background;
-        this.effect = effect;
+        this.visual = new Visual(image, imageLine, backgroundImage, backgroundEffectEnum, ex3dEffect, categoryEffect);
         this.createdBy = createdBy;
         this.illustrator = illustrator;
         this.rarity = rarity;
@@ -75,16 +69,8 @@ public abstract class Card {
         return name;
     }
 
-    public String getImage() {
-        return image;
-    }
-
-    public BackgroundEnum getBackground() {
-        return background;
-    }
-
-    public EffectEnum getEffect() {
-        return effect;
+    public Visual getVisual() {
+        return visual;
     }
 
     public String getCreatedBy() {
@@ -107,12 +93,10 @@ public abstract class Card {
         return illustrator;
     }
 
-    public void setImage(String image) {
-        this.image = image;
+    public void setVisual(Visual visual) {
+        this.visual = visual;
     }
-    public void setBackground(BackgroundEnum background) {
-        this.background = background;
-    }
+
     public void setStatus(PromoteStatusEnum status) {
         this.status = status;
     }
