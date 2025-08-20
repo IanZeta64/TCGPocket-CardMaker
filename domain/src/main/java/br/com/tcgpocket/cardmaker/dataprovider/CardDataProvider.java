@@ -2,6 +2,7 @@ package br.com.tcgpocket.cardmaker.dataprovider;
 
 import br.com.tcgpocket.cardmaker.model.Card;
 import br.com.tcgpocket.cardmaker.vo.PokeDetailVO;
+import br.com.tcgpocket.cardmaker.vo.PokeInfoVO;
 import br.com.tcgpocket.cardmaker.vo.PokeSpeciesVO;
 import org.springframework.data.mongodb.core.query.Query;
 import reactor.core.publisher.Flux;
@@ -22,4 +23,8 @@ public interface CardDataProvider {
     Mono<Boolean> existsById(String id);
 
     Mono<Void> delete(String id);
+
+    Mono<PokeInfoVO> getPokeInfoFromCache(String name);
+
+    Mono<PokeInfoVO> savePokeInfoInCache(String name, PokeInfoVO value);
 }

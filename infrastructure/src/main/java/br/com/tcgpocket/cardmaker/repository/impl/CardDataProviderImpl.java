@@ -5,23 +5,31 @@ import br.com.tcgpocket.cardmaker.http.PokeAPIClient;
 import br.com.tcgpocket.cardmaker.model.Card;
 import br.com.tcgpocket.cardmaker.repository.CardRepository;
 import br.com.tcgpocket.cardmaker.vo.PokeDetailVO;
+import br.com.tcgpocket.cardmaker.vo.PokeInfoVO;
 import br.com.tcgpocket.cardmaker.vo.PokeSpeciesVO;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.data.redis.core.ReactiveRedisTemplate;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.time.Duration;
 
 @Component
 public class CardDataProviderImpl implements CardDataProvider {
     private final CardRepository repository;
     private final ReactiveMongoTemplate mongoTemplate;
     private final PokeAPIClient client;
+    private final ReactiveRedisTemplate<String, PokeInfoVO> redis;
+    private final Duration CACHE_TTL = Duration.ofHours(24);
 
-    public CardDataProviderImpl(CardRepository repository, ReactiveMongoTemplate mongoTemplate, PokeAPIClient client) {
+
+    public CardDataProviderImpl(CardRepository repository, ReactiveMongoTemplate mongoTemplate, PokeAPIClient client, ReactiveRedisTemplate<String, PokeInfoVO> redis) {
         this.repository = repository;
         this.mongoTemplate = mongoTemplate;
         this.client = client;
+        this.redis = redis;
     }
 
     @Override
@@ -57,5 +65,16 @@ public class CardDataProviderImpl implements CardDataProvider {
     @Override
     public Mono<Void> delete(String id) {
         return repository.deleteById(id);
+    }
+
+    @Override
+    public Mono<PokeInfoVO> getPokeInfoFromCache(String name) {
+        return redis.opsForValue().get(name);
+    }
+    @Override
+    public Mono<PokeInfoVO> savePokeInfoInCache(String name, PokeInfoVO info) {
+        return redis.opsForValue().set(name, info, CACHE_TTL)
+                .flatMap(it -> Boolean.TRUE.equals(it) ? Mono.just(info) : Mono.empty()
+        );
     }
 }

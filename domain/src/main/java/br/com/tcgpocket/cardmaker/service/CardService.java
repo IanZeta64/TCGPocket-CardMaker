@@ -16,7 +16,6 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -30,55 +29,75 @@ public class CardService {
         this.cardDataProvider = cardDataProvider;
     }
 
-    public Mono<PokeInfoVO> getPokeInfo(String user, PokeCardRequest card) {
+    public Mono<PokeInfoVO> getPokeInfoFromExternalSource(String user, PokeCardRequest request) {
         return Mono.defer(() -> {
-                            log.info("m=create, s=init, i=getPokeInfo, cardName={}, creator={}", card.name(), user);
-                            return cardDataProvider.getPokeDetail(card.name())
-                                    .switchIfEmpty(Mono.error(new PokeNotFoundException("Details not found of poke: " + card.name())))
-                                    .zipWith(cardDataProvider.getPokeSpecies(card.name()))
-                                    .switchIfEmpty(Mono.error(new PokeNotFoundException("Infos not found of poke: " + card.name())))
-                                    .flatMap(tuple -> {
-                                        var details = tuple.getT1();
-                                        var species = tuple.getT2();
+                            log.info("m=create, s=init, i=getPokeInfo, cardName={}, creator={}", request.name(), user);
+                            return cardDataProvider.getPokeDetail(request.name())
+                                    .switchIfEmpty(Mono.error(new PokeNotFoundException("Details not found of poke: " + request.name())))
 
-                                        var validateEvolutionAndNoFossilPoke = validateEvolutionAndNoFossilPoke(card, species);
-                                        Mono<String> preEvolutionSprite = validateEvolutionAndNoFossilPoke
-                                                ? cardDataProvider.getPokeDetail(species.evolveFrom().name()).map(PokeDetailVO::getSprite)
-                                                .switchIfEmpty(Mono.error(new PokeNotFoundException("Details not found of poke: " + card.name())))
-                                                : Mono.empty();
+                                    .zipWith(cardDataProvider.getPokeSpecies(request.name()))
+                                    .switchIfEmpty(Mono.error(new PokeNotFoundException("Infos not found of poke: " + request.name())))
 
-                                        return preEvolutionSprite
-                                                .map(evolveFromSprite -> new PokeInfoVO(
-                                                        details.getDefaultImage(),
-                                                        details.getShinyImage(),
-                                                        species.evolveFrom().name(),
-                                                        evolveFromSprite,
-                                                        details.dexNumber(),
-                                                        species.getDexInfo(),
-                                                        details.height(),
-                                                        details.weight(),
-                                                        species.getDexDescription()
-                                                ))
-                                                .switchIfEmpty(
-                                                        Mono.just(new PokeInfoVO(
-                                                                        details.getDefaultImage(),
-                                                                        details.getShinyImage(),
-                                                                        null,
-                                                                        null,
-                                                                        details.dexNumber(),
-                                                                        species.getDexInfo(),
-                                                                        details.height(),
-                                                                        details.weight(),
-                                                                        species.getDexDescription()
-                                                                )
-                                                        )
-                                                );
-                                    });
+                                    .flatMap(tuple -> buildPokeInfoFromExternalSource(request, tuple.getT1(), tuple.getT2()));
                         }
-
                 )
-                .doOnNext(it -> log.info("m=getPokeInfo, s=finished, i=getPokeInfo, cardName={}, creator={}", card.name(), user))
-                .doOnError(ex -> log.error("m=getPokeInfo, s=error, i=getPokeInfo, ex={}, message={}, cardName={}, creator={}", ex.getClass(), ex.getMessage(), card.name(), user))
+                .doOnNext(it -> log.info("m=getPokeInfo, s=finished, i=getPokeInfo, cardName={}, creator={}", request.name(), user))
+                .doOnError(ex -> log.error("m=getPokeInfo, s=error, i=getPokeInfo, ex={}, message={}, cardName={}, creator={}", ex.getClass(), ex.getMessage(), request.name(), user))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    private Mono<PokeInfoVO> buildPokeInfoFromExternalSource(PokeCardRequest request, PokeDetailVO details, PokeSpeciesVO species) {
+        var validateEvolutionAndNoFossilPoke = validateEvolutionAndNoFossilPoke(request, species);
+        Mono<String> preEvolutionSprite = validateEvolutionAndNoFossilPoke
+                ? cardDataProvider.getPokeDetail(species.evolveFrom().name()).map(PokeDetailVO::getSprite)
+                .switchIfEmpty(Mono.error(new PokeNotFoundException("Details not found of poke: " + request.name())))
+                : Mono.empty();
+
+        return preEvolutionSprite
+                .map(evolveFromSprite -> new PokeInfoVO(
+                        details.getDefaultImage(),
+                        details.getShinyImage(),
+                        species.evolveFrom().name(),
+                        evolveFromSprite,
+                        details.dexNumber(),
+                        species.getDexInfo(),
+                        details.height(),
+                        details.weight(),
+                        species.getDexDescription()
+                ))
+                .switchIfEmpty(
+                        Mono.just(new PokeInfoVO(
+                                        details.getDefaultImage(),
+                                        details.getShinyImage(),
+                                        null,
+                                        null,
+                                        details.dexNumber(),
+                                        species.getDexInfo(),
+                                        details.height(),
+                                        details.weight(),
+                                        species.getDexDescription()
+                                )
+                        )
+                );
+    }
+
+    public Mono<PokeInfoVO> getPokeInfoFromCache(String name) {
+        return Mono.defer(() -> {
+                            log.info("m=getPokeInfoFromCache, s=init, i=getPokeInfo, cardName={}", name);
+                            return cardDataProvider.getPokeInfoFromCache(name);
+                        }
+                ).doOnNext(it -> log.info("m=getPokeInfoFromCache, s=finished, i=getPokeInfo, cardName={}, pokeInfo={}", name, it))
+                .doOnError(ex -> log.error("m=getPokeInfoFromCache, s=warn, i=getPokeInfo, ex={}, message={}, cardName={}", ex.getClass(), ex.getMessage(), name))
+                .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    public Mono<PokeInfoVO> savePokeInfoInCache(String name, PokeInfoVO pokeInfo) {
+        return Mono.defer(() -> {
+                            log.info("m=savePokeInfoInCache, s=init, i=savePokeInfo, cardName={}, pokeInfo={}", name, pokeInfo);
+                            return cardDataProvider.savePokeInfoInCache(name, pokeInfo);
+                        }
+                ).doOnNext(it -> log.info("m=savePokeInfoInCache, s=finished, i=savePokeInfo, cardName={}, pokeInfo={}", name, pokeInfo))
+                .doOnError(ex -> log.error("m=savePokeInfoInCache, s=error, i=savePokeInfo, ex={}, message={}, cardName={}, pokeInfo={}", ex.getClass(), ex.getMessage(), name, pokeInfo))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
@@ -86,7 +105,7 @@ public class CardService {
         boolean validateImage = request.image() != null;
         return Mono.just(new PokeCard(
                         request.battleCategory() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
-                        validateImage ? request.image() : Boolean.TRUE.equals(request.isShiny()) ? pokeInfo.shinyImage() : pokeInfo.defaultImage(),
+                        validateImage ? request.image() : validateShiny(request.isShiny(), pokeInfo),
                         request.imageLine(),
                         request.backgroundImage(),
                         request.backgroundEffect(),
@@ -113,6 +132,10 @@ public class CardService {
                         pokeInfo.evolveFromSprite()
                 ))
                 .subscribeOn(Schedulers.boundedElastic());
+    }
+
+    private String validateShiny(boolean isShiny, PokeInfoVO pokeInfo) {
+        return isShiny ? pokeInfo.shinyImage() : pokeInfo.defaultImage();
     }
 
     public Mono<PokeCard> buildModel(String user, PokeCardRequest request) {
@@ -225,8 +248,10 @@ public class CardService {
     }
 
     public Card changeImage(Card card, ImageChangeRequest newVisual) {
-        if (card.getStatus() != PromoteStatusEnum.PRIVATE) throw new NotUpdateCardException("Cannot change image of a promoted: " + card.getId());
-        if (newVisual.image() != null) card.setVisual(new Visual(newVisual.image(), newVisual.imageLine(), newVisual.backgroundImage(), newVisual.backgroundEffect(), newVisual.ex3dEffect(), card.getVisual().getCategoryEffect()));
+        if (card.getStatus() != PromoteStatusEnum.PRIVATE)
+            throw new NotUpdateCardException("Cannot change image of a promoted: " + card.getId());
+        if (newVisual.image() != null)
+            card.setVisual(new Visual(newVisual.image(), newVisual.imageLine(), newVisual.backgroundImage(), newVisual.backgroundEffect(), newVisual.ex3dEffect(), card.getVisual().getCategoryEffect()));
         return card;
     }
 
