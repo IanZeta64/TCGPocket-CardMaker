@@ -28,10 +28,16 @@ public class CreatePokeCardUseCase {
     public Mono<CardResponse> execute(String user, PokeCardRequest request) {
         return Mono.defer(() -> {
                             log.info("m=create, s=init, i=createPokeCard, cardName={}, creator={}", request.name(), user);
-                    var model = Boolean.TRUE.equals(request.isOfficialPoke())
-                            ? service.getPokeInfo(user, request)
-                            .flatMap(pokeInfo -> service.buildModelWithOfficialPoke(user, request, pokeInfo))
-                            : service.buildModel(user, request);
+                            var model = Boolean.TRUE.equals(request.isOfficialPoke())
+                                    ? service.getPokeInfoFromCache(request.name()).
+                                    switchIfEmpty(service.getPokeInfoFromExternalSource(user, request)
+                                            .flatMap(pokeInfo ->
+                                                    service.savePokeInfoInCache(request.name(), pokeInfo)
+                                                            .thenReturn(pokeInfo)
+                                            )
+                                    )
+                                    .flatMap(pokeInfo -> service.buildModelWithOfficialPoke(user, request, pokeInfo))
+                                    : service.buildModel(user, request);
 
                             return model
                                     .flatMap(cardDataProvider::save).ofType(PokeCard.class)
@@ -39,9 +45,9 @@ public class CreatePokeCardUseCase {
                                     .map(Mapper::toResponse);
                         }
                 )
-                                    .doOnNext(it ->
-                                            log.info("m=create, s=finished, i=createPokeCard, cardId={}, cardName={}, creator={}", it.id(), it.name(), user))
-                                    .doOnError( ex -> log.error("m=create, s=error, i=createPokeCard, ex={}, message={}, cardName={}, creator={}", ex.getClass(), ex.getMessage(), request.name(), user))
+                .doOnNext(it ->
+                        log.info("m=create, s=finished, i=createPokeCard, cardId={}, cardName={}, creator={}", it.id(), it.name(), user))
+                .doOnError(ex -> log.error("m=create, s=error, i=createPokeCard, ex={}, message={}, cardName={}, creator={}", ex.getClass(), ex.getMessage(), request.name(), user))
                 .subscribeOn(Schedulers.boundedElastic());
     }
 }

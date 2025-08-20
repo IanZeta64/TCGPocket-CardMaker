@@ -7,3 +7,9 @@ spring:
       port: 27017
       database: card_db
 
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      timeout: 60000ms  # timeout da conexão
+
