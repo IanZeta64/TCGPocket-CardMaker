@@ -1,9 +1,12 @@
 package br.com.tcgpocket.cardmaker.vo;
 
-import br.com.tcgpocket.cardmaker.enums.BackgroundEnum;
+import br.com.tcgpocket.cardmaker.enums.BackgroundEffectEnum;
 
 public record ImageChangeRequest(
-        String image,
-        BackgroundEnum background
+       String image,
+       String imageLine,
+       String backgroundImage,
+       BackgroundEffectEnum backgroundEffect,
+       String ex3dEffect
 ) {
 }

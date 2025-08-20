@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 @TypeAlias("poke")
 public class PokeCard extends Card {
     private String specie;
-    private BattleCategoryEnum category;
+    private BattleCategoryEnum battleCategory;
     private PokeTypeEnum type;
     private EvolutionStageEnum evolutionStage;
     private Integer dexNumber;
@@ -24,10 +24,10 @@ public class PokeCard extends Card {
     public PokeCard() {
     }
 
-    public PokeCard(String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, String specie, BattleCategoryEnum category, PokeTypeEnum type, EvolutionStageEnum evolutionStage, Integer dexNumber, String dexInfo, String pokeDescription, Integer ps, Ability ability, Ability attack, PokeTypeEnum weakness, Integer retreat, String evolveFrom, String evolveFromSprite) {
-        super(name, image, background, effect, createdBy, illustrator, rarity, booster, status);
+    public PokeCard(String name, String image, String imageLine, String backgroundImage, BackgroundEffectEnum backgroundEffectEnum, String ex3dEffect, CategoryEffectEnum categoryEffect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, String specie, BattleCategoryEnum battleCategory, PokeTypeEnum type, EvolutionStageEnum evolutionStage, Integer dexNumber, String dexInfo, String pokeDescription, Integer ps, Ability ability, Ability attack, PokeTypeEnum weakness, Integer retreat, String evolveFrom, String evolveFromSprite) {
+        super(name, image, imageLine, backgroundImage, backgroundEffectEnum, ex3dEffect, categoryEffect, createdBy, illustrator, rarity, booster, status);
         this.specie = specie;
-        this.category = category;
+        this.battleCategory = battleCategory;
         this.type = type;
         this.evolutionStage = evolutionStage;
         this.dexNumber = dexNumber;
@@ -42,10 +42,10 @@ public class PokeCard extends Card {
         this.evolveFromSprite = evolveFromSprite;
     }
 
-    public PokeCard(String id, String name, String image, BackgroundEnum background, EffectEnum effect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt, String specie, BattleCategoryEnum category, PokeTypeEnum type, EvolutionStageEnum evolutionStage, Integer dexNumber, String dexInfo, String pokeDescription, Integer ps, Ability ability, Ability attack, PokeTypeEnum weakness, Integer retreat, String evolveFrom, String evolveFromSprite) {
-        super(id, name, image, background, effect, createdBy, illustrator, rarity, booster, status, createdAt);
+    public PokeCard(String id, String name, String image, String imageLine, String backgroundImage, BackgroundEffectEnum backgroundEffect, String ex3dEffect, CategoryEffectEnum categoryEffect, String createdBy, String illustrator, RarityEnum rarity, String booster, PromoteStatusEnum status, LocalDateTime createdAt, String specie, BattleCategoryEnum battleCategory, PokeTypeEnum type, EvolutionStageEnum evolutionStage, Integer dexNumber, String dexInfo, String pokeDescription, Integer ps, Ability ability, Ability attack, PokeTypeEnum weakness, Integer retreat, String evolveFrom, String evolveFromSprite) {
+        super(id, name, image, imageLine, backgroundImage, backgroundEffect, ex3dEffect, categoryEffect, createdBy, illustrator, rarity, booster, status, createdAt);
         this.specie = specie;
-        this.category = category;
+        this.battleCategory = battleCategory;
         this.type = type;
         this.evolutionStage = evolutionStage;
         this.dexNumber = dexNumber;
@@ -64,8 +64,8 @@ public class PokeCard extends Card {
         return specie;
     }
 
-    public BattleCategoryEnum getCategory() {
-        return category;
+    public BattleCategoryEnum getBattleCategory() {
+        return battleCategory;
     }
 
     public PokeTypeEnum getType() {

@@ -7,6 +7,7 @@ import br.com.tcgpocket.cardmaker.exceptions.NotUpdateCardException;
 import br.com.tcgpocket.cardmaker.model.Card;
 import br.com.tcgpocket.cardmaker.model.PokeCard;
 import br.com.tcgpocket.cardmaker.model.UtilCard;
+import br.com.tcgpocket.cardmaker.model.Visual;
 import br.com.tcgpocket.cardmaker.vo.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,30 +82,33 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Mono<PokeCard> buildModelWithOfficialPoke(String user, PokeCardRequest card, PokeInfoVO pokeInfo) {
-        boolean validateImage = card.image() != null;
+    public Mono<PokeCard> buildModelWithOfficialPoke(String user, PokeCardRequest request, PokeInfoVO pokeInfo) {
+        boolean validateImage = request.image() != null;
         return Mono.just(new PokeCard(
-                        card.category() != BattleCategoryEnum.EX ? card.name() : card.name() + "-EX",
-                        validateImage ? card.image() : Boolean.TRUE.equals(card.isShiny()) ? pokeInfo.shinyImage() : pokeInfo.defaultImage(),
-                        card.background(),
-                        validateEffect(card),
+                        request.battleCategory() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
+                        validateImage ? request.image() : Boolean.TRUE.equals(request.isShiny()) ? pokeInfo.shinyImage() : pokeInfo.defaultImage(),
+                        request.imageLine(),
+                        request.backgroundImage(),
+                        request.backgroundEffect(),
+                        request.ex3dEffect(),
+                        validateEffect(request),
                         user,
-                        validateImage ? card.illustrator() : null,
-                        Boolean.TRUE.equals(card.isPromo()) ? RarityEnum.PROMO : validateRarity(card),
-                        card.booster(),
+                        validateImage ? request.illustrator() : null,
+                        Boolean.TRUE.equals(request.isPromo()) ? RarityEnum.PROMO : validateRarity(request),
+                        request.booster(),
                         PromoteStatusEnum.PRIVATE,
-                        card.name(),
-                        card.category(),
-                        card.type(),
-                        card.evolutionStage(),
+                        request.name(),
+                        request.battleCategory(),
+                        request.type(),
+                        request.evolutionStage(),
                         pokeInfo.dexNumber(),
                         String.format("Nº%04d %s Height: %s ft Weight: %s lb.", pokeInfo.dexNumber(), pokeInfo.dexInfo(), pokeInfo.height(), pokeInfo.height()),
                         pokeInfo.dexDescription().replace("\\n", " ").replace("\f", " "),
-                        card.ps(),
-                        card.ability(),
-                        card.attack(),
-                        card.weakness(),
-                        card.retreat(),
+                        request.ps(),
+                        request.ability(),
+                        request.attack(),
+                        request.weakness(),
+                        request.retreat(),
                         pokeInfo.evolveFrom(),
                         pokeInfo.evolveFromSprite()
                 ))
@@ -113,9 +117,12 @@ public class CardService {
 
     public Mono<PokeCard> buildModel(String user, PokeCardRequest request) {
         return Mono.just(new PokeCard(
-                        request.category() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
+                        request.battleCategory() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
                         request.image(),
-                        request.background(),
+                        request.imageLine(),
+                        request.backgroundImage(),
+                        request.backgroundEffect(),
+                        request.ex3dEffect(),
                         validateEffect(request),
                         user,
                         request.illustrator(),
@@ -123,7 +130,7 @@ public class CardService {
                         request.booster(),
                         PromoteStatusEnum.PRIVATE,
                         request.name(),
-                        request.category(),
+                        request.battleCategory(),
                         request.type(),
                         request.evolutionStage(),
                         request.dexNumber(),
@@ -145,7 +152,10 @@ public class CardService {
                 new UtilCard(
                         request.name(),
                         request.image(),
-                        request.background(),
+                        request.imageLine(),
+                        request.backgroundImage(),
+                        request.backgroundEffect(),
+                        request.ex3dEffect(),
                         validateEffect(request),
                         user,
                         request.illustrator(),
@@ -160,10 +170,13 @@ public class CardService {
 
     public Mono<PokeCard> updateModel(String user, PokeCardRequest request, PokeCard model) {
         return Mono.just(new PokeCard(
-                       model.getId(),
-                        request.category() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
+                        model.getId(),
+                        request.battleCategory() != BattleCategoryEnum.EX ? request.name() : request.name() + "-EX",
                         request.image(),
-                        request.background(),
+                        request.imageLine(),
+                        request.backgroundImage(),
+                        request.backgroundEffect(),
+                        request.ex3dEffect(),
                         validateEffect(request),
                         user,
                         request.illustrator(),
@@ -172,7 +185,7 @@ public class CardService {
                         model.getStatus(),
                         model.getCreatedAt(),
                         request.name(),
-                        request.category(),
+                        request.battleCategory(),
                         request.type(),
                         request.evolutionStage(),
                         request.dexNumber(),
@@ -194,7 +207,10 @@ public class CardService {
                         model.getId(),
                         request.name(),
                         request.image(),
-                        request.background(),
+                        request.imageLine(),
+                        request.backgroundImage(),
+                        request.backgroundEffect(),
+                        request.ex3dEffect(),
                         validateEffect(request),
                         user,
                         request.illustrator(),
@@ -208,10 +224,9 @@ public class CardService {
                 .subscribeOn(Schedulers.boundedElastic());
     }
 
-    public Card changeImage(Card card, ImageChangeRequest newImage) {
+    public Card changeImage(Card card, ImageChangeRequest newVisual) {
         if (card.getStatus() != PromoteStatusEnum.PRIVATE) throw new NotUpdateCardException("Cannot change image of a promoted: " + card.getId());
-        if (newImage.image() != null) card.setImage(newImage.image());
-        if (newImage.background() != null) card.setBackground(newImage.background());
+        if (newVisual.image() != null) card.setVisual(new Visual(newVisual.image(), newVisual.imageLine(), newVisual.backgroundImage(), newVisual.backgroundEffect(), newVisual.ex3dEffect(), card.getVisual().getCategoryEffect()));
         return card;
     }
 
@@ -223,7 +238,7 @@ public class CardService {
     }
 
     private RarityEnum validateRarity(UtilCardRequest request) {
-        return Boolean.TRUE.equals((request.isPromo())) ? RarityEnum.PROMO : switch (request.effect()) {
+        return Boolean.TRUE.equals((request.isPromo())) ? RarityEnum.PROMO : switch (request.categoryEffect()) {
             case SPECIAL_ART, FULL_ART, RAINBOW -> RarityEnum.STAR_2;
             case IMMERSIVE -> RarityEnum.STAR_3;
             case GOLD -> RarityEnum.CROWN;
@@ -234,8 +249,8 @@ public class CardService {
     private RarityEnum validateRarity(PokeCardRequest request) {
         if (Boolean.TRUE.equals(request.isPromo())) return RarityEnum.PROMO;
         RarityEnum rarity;
-        if (request.category() == BattleCategoryEnum.NO_EX) {
-            rarity = switch (request.effect()) {
+        if (request.battleCategory() == BattleCategoryEnum.NO_EX) {
+            rarity = switch (request.categoryEffect()) {
                 case COMMON ->
                         request.evolutionStage() == EvolutionStageEnum.BASIC ? RarityEnum.DIAMOND : RarityEnum.DIAMOND_2;
                 case FOIL -> RarityEnum.DIAMOND_3;
@@ -246,7 +261,7 @@ public class CardService {
                 default -> RarityEnum.DIAMOND;
             };
         } else {
-            rarity = switch (request.effect()) {
+            rarity = switch (request.categoryEffect()) {
                 case RAINBOW, SPECIAL_ART -> RarityEnum.STAR_2;
                 case IMMERSIVE -> RarityEnum.STAR_3;
                 case SHINY -> RarityEnum.SHINY_2;
@@ -257,28 +272,28 @@ public class CardService {
         return rarity;
     }
 
-    private EffectEnum validateEffect(UtilCardRequest card) {
-        return switch (card.effect()) {
-            case COMMON, FOIL, EX -> EffectEnum.COMMON;
-            case FULL_ART, SPECIAL_ART, RAINBOW, SHINY -> EffectEnum.SPECIAL_ART;
-            case IMMERSIVE -> EffectEnum.IMMERSIVE;
-            case GOLD -> EffectEnum.GOLD;
+    private CategoryEffectEnum validateEffect(UtilCardRequest card) {
+        return switch (card.categoryEffect()) {
+            case COMMON, FOIL, EX -> CategoryEffectEnum.COMMON;
+            case FULL_ART, SPECIAL_ART, RAINBOW, SHINY -> CategoryEffectEnum.SPECIAL_ART;
+            case IMMERSIVE -> CategoryEffectEnum.IMMERSIVE;
+            case GOLD -> CategoryEffectEnum.GOLD;
         };
     }
 
-    private EffectEnum validateEffect(PokeCardRequest card) {
-        var effect = card.effect();
-        if (card.category() == BattleCategoryEnum.NO_EX) {
-            if (effect == EffectEnum.RAINBOW || effect == EffectEnum.SPECIAL_ART) {
-                effect = EffectEnum.FULL_ART;
-            } else if (effect == EffectEnum.EX) {
-                effect = EffectEnum.FOIL;
+    private CategoryEffectEnum validateEffect(PokeCardRequest card) {
+        var effect = card.categoryEffect();
+        if (card.battleCategory() == BattleCategoryEnum.NO_EX) {
+            if (effect == CategoryEffectEnum.RAINBOW || effect == CategoryEffectEnum.SPECIAL_ART) {
+                effect = CategoryEffectEnum.FULL_ART;
+            } else if (effect == CategoryEffectEnum.EX) {
+                effect = CategoryEffectEnum.FOIL;
             }
             return effect;
         }
         return switch (effect) {
-            case COMMON, FOIL -> EffectEnum.EX;
-            case FULL_ART -> EffectEnum.RAINBOW;
+            case COMMON, FOIL -> CategoryEffectEnum.EX;
+            case FULL_ART -> CategoryEffectEnum.RAINBOW;
             default -> effect;
         };
     }
