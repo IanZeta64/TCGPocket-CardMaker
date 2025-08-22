@@ -86,7 +86,6 @@ tasks.withType<Test> {
 	useJUnitPlatform()
 }
 
-// Tarefa bootRun para rodar o módulo 'app'
 tasks.register<JavaExec>("bootRunApp") {
 	group = "application"
 	description = "Run Spring Boot app module"
@@ -94,5 +93,4 @@ tasks.register<JavaExec>("bootRunApp") {
 	classpath = project(":app").sourceSets["main"].runtimeClasspath
 	mainClass.set("br.com.tcgpocket.cardmaker.CardMakerApplication")
 
-	// Se quiser passar argumentos para o app, use args(...)
 }

@@ -2,3 +2,10 @@ spring:
   application:
     name: "Card Maker"
 
+springdoc:
+  show-actuator: false
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui
+
